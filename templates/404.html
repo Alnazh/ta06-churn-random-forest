@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Halaman tidak ditemukan{% endblock %}
+{% from "macros.html" import banner with context %}
+{% block content %}
+{{ banner("Galat 404", "Sinyal hilang", "Alamat yang kamu buka tidak ada di aplikasi ini.", "exit", "pink") }}
+<section class="section">
+  <div class="wrap">
+    <a class="btn" href="{{ url_for('index') }}">Kembali ke beranda</a>
+  </div>
+</section>
+{% endblock %}

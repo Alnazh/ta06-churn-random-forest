@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% from "macros.html" import banner, head with context %}
+{% block title %}Prediksi{% endblock %}
+{% block content %}
+{{ banner("Cek risiko pelanggan", "Apakah dia akan pergi?", "Isi profil pelanggan, dan hutan acak akan menghitung skor risikonya.", "phone", "pink") }}
+{% if result %}
+<section class="section" id="hasil">
+  <div class="wrap">
+    {{ head("01", "Hasil prediksi", "Skor risiko dari " ~ m.final.n_estimators ~ " pohon, dibandingkan dengan pola di data.", "red") }}
+    <figure class="figure figure--yellow">
+      <div class="figure__plot score score--{{ result.level }}">
+        {% set lit = [0, 5 - (result.score * 5)|round|int]|max %}
+        <div class="signal" role="img" aria-label="Kekuatan hubungan pelanggan: {{ lit }} dari 5 bar">
+          {% for i in range(1, 6) %}<i{% if i <= lit %} class="on"{% endif %}></i>{% endfor %}
+        </div>
+        <p class="score__label">{{ "Berisiko churn" if result.flagged else "Cenderung bertahan" }}</p>
+        <p class="score__value">{{ result.score|pct(0) }}</p>
+        <p class="score__hint">Kekuatan hubungan: {{ lit }} dari 5 bar. Makin sedikit, makin berisiko.</p>
+        <div class="meter">
+          <progress max="100" value="{{ (result.score * 100)|round|int }}">{{ result.score|pct(0) }}</progress>
+        </div>
+        <p class="score__axis"><span>0%</span><span>ambang {{ threshold|pct(0) }}</span><span>100%</span></p>
+      </div>
+      <figcaption class="figure__note">
+        <span class="tag">Cara membaca</span>
+        {% for paragraph in result.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+        <span class="tag">Saran retensi</span>
+        <ul class="plain">{% for item in result.advice %}<li>{{ item }}</li>{% endfor %}</ul>
+        <p class="fine">Saran ini hipotesis dari pola data dan perlu diuji sebelum dijalankan.</p>
+      </figcaption>
+    </figure>
+
+    {{ head("02", "Bagaimana hutan memutuskan", result.walk.n_trees ~ " pohon menilai pelanggan ini, lalu skornya dirata-rata.", "blue") }}
+    {% set w = result.walk %}
+    <figure class="figure figure--blue">
+      <div class="figure__plot">
+        <h3 class="figure__title">Skor tiap pohon untuk pelanggan ini</h3>
+        <ul class="forest" aria-hidden="true">
+          {% for s in w.scores %}<li class="{{ 'churn' if s >= threshold else 'stay' }}{{ ' picked' if loop.index0 == w.picked }}" title="Pohon {{ loop.index }}: skor {{ s|pct(0) }}"></li>{% endfor %}
+        </ul>
+        <ul class="legend">
+          <li><i class="sw sw--churn"></i>Condong churn ({{ w.n_churn }})</li>
+          <li><i class="sw sw--stay"></i>Condong bertahan ({{ w.n_trees - w.n_churn }})</li>
+          <li><i class="sw sw--picked"></i>Pohon yang jalurnya ditampilkan</li>
+        </ul>
+      </div>
+      <figcaption class="figure__note">
+        <span class="tag">Cara membaca</span>
+        {% for line in result.forest_lines %}<p>{{ line }}</p>{% endfor %}
+      </figcaption>
+    </figure>
+
+    <figure class="figure figure--lime">
+      <div class="figure__plot">
+        <h3 class="figure__title">Jalur yang diambil pohon nomor {{ w.picked + 1 }}</h3>
+        <ol class="path">
+          {% for step in w.steps %}
+          <li>
+            <span class="path__no" aria-hidden="true">{{ loop.index }}</span>
+            <div><p class="path__q">{{ step.question }}?</p>{% if step.shown %}<p class="path__v">Nilai pelanggan: {{ step.shown }}</p>{% endif %}</div>
+            <span class="path__ans path__ans--{{ 'ya' if step.yes else 'tidak' }}">{{ "Ya" if step.yes else "Tidak" }}</span>
+          </li>
+          {% endfor %}
+          <li class="path__leaf path__leaf--{{ 'churn' if w.tree_score >= threshold else 'stay' }}">
+            <strong>Daun: skor churn {{ w.tree_score|pct(0) }}</strong>
+            <span>dibentuk dari {{ w.leaf_n|num }} sampel latih</span>
+          </li>
+        </ol>
+      </div>
+      <figcaption class="figure__note">
+        <span class="tag">Cara membaca</span>
+        {% for line in result.path_lines %}<p>{{ line }}</p>{% endfor %}
+      </figcaption>
+    </figure>
+
+    {{ head("03", "Profil dibanding data", "", "yellow") }}
+    <p class="caption">Profil dibanding rata-rata data ({{ m.dataset.churn_rate|pct }} churn). Kotak pink di atas rata-rata, lingkaran biru di bawah, kotak putih setara.</p>
+    <div class="table-wrap table-wrap--left">
+      <table>
+        <caption class="sr">Profil pelanggan dibanding rata-rata data</caption>
+        <thead><tr><th scope="col">Faktor</th><th scope="col">Kondisi</th><th scope="col">Churn di data</th><th scope="col">Pelanggan serupa</th><th scope="col">Posisi</th></tr></thead>
+        <tbody>
+          {% for factor in result.factors %}
+          {% set delta = factor.rate - m.dataset.churn_rate %}
+          {% set tone = "up" if delta > 0.02 else "down" if delta < -0.02 else "flat" %}
+          <tr>
+            <th scope="row">{{ factor.label }}</th>
+            <td>{{ factor.value }}</td>
+            <td>{{ factor.rate|pct }}</td>
+            <td>{{ factor.n|num }}</td>
+            <td><span class="shape shape--{{ tone }}" aria-hidden="true"></span>{{ "di atas" if tone == "up" else "di bawah" if tone == "down" else "setara" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section"{% if not result %} id="hasil"{% endif %}>
+  <div class="wrap">
+    {{ head("04" if result else "01", "Data pelanggan", "Pilih contoh atau isi sendiri. Total tagihan boleh kosong dan dihitung dari lama berlangganan dikali tagihan bulanan.", "blue") }}
+
+    {% if errors %}
+    <div class="alert" role="alert">
+      <strong>Periksa kembali isian kamu</strong>
+      <ul class="plain">{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <div class="presets">
+      <button class="btn btn--ghost" type="button" data-fill='{{ presets.berisiko|tojson }}'>Contoh pelanggan berisiko</button>
+      <button class="btn btn--ghost" type="button" data-fill='{{ presets.setia|tojson }}'>Contoh pelanggan setia</button>
+    </div>
+
+    <form id="form-prediksi" method="post" action="{{ url_for('predict') }}#hasil" novalidate>
+      {% for group_name, columns in groups %}
+      <fieldset>
+        <legend>{{ group_name }}</legend>
+        <div class="form-grid">
+          {% for column in columns %}
+          <div class="field"{% if column in ["OnlineSecurity", "OnlineBackup", "DeviceProtection", "TechSupport", "StreamingTV", "StreamingMovies"] %} data-needs-internet{% elif column == "MultipleLines" %} data-needs-phone{% endif %}>
+            <label for="f-{{ column }}">{{ labels[column] }}</label>
+            {% if column == "tenure" %}
+            <input id="f-{{ column }}" name="{{ column }}" type="number" inputmode="numeric" min="0" max="72" step="1" value="{{ form[column] }}" required>
+            {% elif column in ["MonthlyCharges", "TotalCharges"] %}
+            <input id="f-{{ column }}" name="{{ column }}" type="number" inputmode="decimal" min="0" step="0.01" value="{{ form[column] }}"{% if column == "MonthlyCharges" %} required{% else %} placeholder="Otomatis"{% endif %}>
+            {% else %}
+            <select id="f-{{ column }}" name="{{ column }}">
+              {% for option in choices[column] %}
+              <option value="{{ option }}"{% if form[column] == option %} selected{% endif %}>{{ option|value_text }}</option>
+              {% endfor %}
+            </select>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </fieldset>
+      {% endfor %}
+      <button class="btn" type="submit">Periksa risiko</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

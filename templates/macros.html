@@ -1,0 +1,44 @@
+{% macro banner(kicker, title, lead, deco, tone="yellow") %}
+<section class="banner banner--{{ tone }}">
+  <div class="wrap banner__in">
+    <div class="banner__text">
+      <p class="eyebrow">{{ kicker }}</p>
+      <h1 class="h1--page">{{ title }}</h1>
+      <p class="lead">{{ lead }}</p>
+    </div>
+    <img class="banner__deco" src="{{ url_for('static', filename='deco/' ~ deco ~ '.svg') }}" alt="" width="200" height="200">
+  </div>
+</section>
+{% endmacro %}
+
+{% macro head(number, title, lead="", tone="red") %}
+<header class="section__head">
+  <span class="badge badge--{{ tone }}" aria-hidden="true">{{ number }}</span>
+  <div>
+    <h2>{{ title }}</h2>
+    {% if lead %}<p class="lead">{{ lead }}</p>{% endif %}
+  </div>
+</header>
+{% endmacro %}
+
+{% macro figure(file, title, paragraphs, tone="lime") %}
+<figure class="figure figure--{{ tone }}">
+  <div class="figure__plot">
+    <h3 class="figure__title">{{ title }}</h3>
+    <img src="{{ url_for('static', filename='img/' ~ file) }}?v={{ version }}" alt="{{ title }}. {{ paragraphs[0] }}" loading="lazy">
+  </div>
+  <figcaption class="figure__note">
+    <span class="tag">Cara membaca</span>
+    {% for paragraph in paragraphs %}
+    <p>{{ paragraph }}</p>
+    {% endfor %}
+  </figcaption>
+</figure>
+{% endmacro %}
+
+{% macro stat(value, label, tone) %}
+<div class="stat stat--{{ tone }}">
+  <strong>{{ value }}</strong>
+  <span>{{ label }}</span>
+</div>
+{% endmacro %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% from "macros.html" import head, stat with context %}
+{% block title %}Beranda{% endblock %}
+{% block content %}
+{% set gone = (m.dataset.churn_rate * 20)|round|int %}
+<section class="hero">
+  <div class="wrap hero__in">
+    <div class="hero__text">
+      <p class="eyebrow">Random Forest · Telco Churn</p>
+      <h1>Siapa yang <mark>putus</mark> sambungan?</h1>
+      <p class="lead">ChurnForest memakai Random Forest untuk memperkirakan pelanggan telekomunikasi yang berisiko berhenti berlangganan, lengkap dengan penjelasan yang bisa dibaca di setiap grafik.</p>
+      <div class="hero__actions">
+        <a class="cta" href="{{ url_for('predict') }}">Coba prediksi <span aria-hidden="true">→</span></a>
+        <a class="cta cta--ghost" href="{{ url_for('dataset') }}">Lihat datanya</a>
+      </div>
+    </div>
+    <div class="hero__art" aria-hidden="true">
+      <img class="art-tower" src="{{ url_for('static', filename='deco/tower.svg') }}" alt="">
+      <img class="art-phone" src="{{ url_for('static', filename='deco/phone.svg') }}" alt="">
+      <img class="art-exit" src="{{ url_for('static', filename='deco/exit.svg') }}" alt="">
+      <img class="art-sim" src="{{ url_for('static', filename='deco/sim.svg') }}" alt="">
+      <span class="sticker sticker--pink">{{ m.dataset.churn_rate|pct }} pergi</span>
+      <span class="sticker sticker--lime">AUC {{ m.final.auc|dec }}</span>
+    </div>
+  </div>
+</section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee__track">
+    {% for _ in range(2) %}
+    <ul>
+      <li>Kontrak bulanan</li><li>Churn {{ m.dataset.churn_rate|pct }}</li><li>{{ m.dataset.n_rows|num }} pelanggan</li><li>{{ m.final.n_estimators }} pohon</li><li>Sinyal melemah</li><li>Random Forest</li>
+    </ul>
+    {% endfor %}
+  </div>
+</div>
+
+<section class="section">
+  <div class="wrap">
+    <div class="stats">
+      {{ stat(m.dataset.n_rows|num, "pelanggan dalam data", "white") }}
+      {{ stat(m.dataset.churn_rate|pct, "berhenti berlangganan", "pink") }}
+      {{ stat(m.final.report.churn.recall|pct(0), "churn tertangkap (recall)", "yellow") }}
+      {{ stat(m.final.auc|dec, "AUC pada data uji", "blue") }}
+    </div>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="wrap split">
+    <div>
+      <p class="summary">{{ summary }}</p>
+    </div>
+    <figure class="crowd-card">
+      <ul class="crowd" aria-hidden="true">
+        {% for i in range(20) %}<li{% if i >= 20 - gone %} class="gone"{% endif %}></li>{% endfor %}
+      </ul>
+      <figcaption>Bayangkan 20 pelanggan. Sekitar {{ gone }} di antaranya (ikon pink putus-putus) berhenti berlangganan, sesuai tingkat churn {{ m.dataset.churn_rate|pct }} yang dibulatkan ke kelipatan 5%.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {{ head("01", "Jelajahi aplikasi", "Mulai dari mencoba prediksi, lalu telusuri data, eksperimen, dan model di baliknya.", "pink") }}
+    <div class="tiles">
+      <a class="tile tile--pink" href="{{ url_for('predict') }}">
+        <img src="{{ url_for('static', filename='deco/phone.svg') }}" alt="" loading="lazy">
+        <h3>Prediksi</h3>
+        <p>Cek risiko churn satu pelanggan.</p>
+        <span class="tile__go" aria-hidden="true">→</span>
+      </a>
+      <a class="tile tile--blue" href="{{ url_for('dataset') }}">
+        <img src="{{ url_for('static', filename='deco/sim.svg') }}" alt="" loading="lazy">
+        <h3>Dataset</h3>
+        <p>Pola churn dari kontrak dan lama langganan.</p>
+        <span class="tile__go" aria-hidden="true">→</span>
+      </a>
+      <a class="tile tile--yellow" href="{{ url_for('experiments') }}">
+        <img src="{{ url_for('static', filename='deco/tower.svg') }}" alt="" loading="lazy">
+        <h3>Eksperimen</h3>
+        <p>Uji jumlah dan kedalaman pohon.</p>
+        <span class="tile__go" aria-hidden="true">→</span>
+      </a>
+      <a class="tile tile--lime" href="{{ url_for('model_page') }}">
+        <img src="{{ url_for('static', filename='deco/tree.svg') }}" alt="" loading="lazy">
+        <h3>Model</h3>
+        <p>Laporan, kesalahan, dan fitur terpenting.</p>
+        <span class="tile__go" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="band band--blue">
+  <div class="wrap">
+    {{ head("02", "Random Forest dalam tiga langkah", "Seperti tiga menara yang saling mengecek sinyal sebelum memutuskan.", "yellow") }}
+    <ol class="steps">
+      <li>
+        <img src="{{ url_for('static', filename='deco/tree.svg') }}" alt="" loading="lazy">
+        <h3><span>1</span> Bagging</h3>
+        <p>Setiap pohon dilatih pada sampel data yang diambil acak dengan pengembalian, sehingga tiap pohon melihat data yang sedikit berbeda.</p>
+      </li>
+      <li>
+        <img src="{{ url_for('static', filename='deco/signal.svg') }}" alt="" loading="lazy">
+        <h3><span>2</span> Fitur acak</h3>
+        <p>Di setiap percabangan hanya sebagian fitur yang dipertimbangkan, supaya pohon-pohonnya tidak seragam.</p>
+      </li>
+      <li>
+        <img src="{{ url_for('static', filename='deco/exit.svg') }}" alt="" loading="lazy">
+        <h3><span>3</span> Voting</h3>
+        <p>Untuk klasifikasi, keputusan akhir diambil dari suara terbanyak seluruh pohon, sehingga hasilnya lebih stabil daripada satu pohon.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {{ head("03", "Batasan yang perlu diketahui", "", "ink") }}
+    <ul class="notes">
+      <li>Datanya adalah contoh dari IBM tentang perusahaan telekomunikasi fiktif, bukan data operator di Indonesia.</li>
+      <li>Skor risiko berasal dari model dengan class_weight balanced, jadi cocok untuk membandingkan urutan risiko dan bukan sebagai peluang yang terkalibrasi.</li>
+      <li>Hasil diukur dari satu pembagian data latih dan uji, ditambah validasi silang. Angkanya bisa bergeser jika datanya dibagi dengan cara lain.</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}

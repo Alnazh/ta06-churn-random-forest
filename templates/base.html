@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Beranda{% endblock %} | ChurnForest</title>
+  <meta name="description" content="Prediksi pelanggan telekomunikasi yang berisiko berhenti berlangganan dengan algoritma Random Forest.">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ version }}">
+</head>
+<body>
+  <a class="skip" href="#isi">Lewati ke konten</a>
+  <header class="top">
+    <div class="wrap top__in">
+      <a class="brand" href="{{ url_for('index') }}">
+        <img src="{{ url_for('static', filename='deco/tower.svg') }}" alt="" width="30" height="45">
+        <span class="brand__name">Churn<b>Forest</b></span>
+      </a>
+      <nav class="nav" aria-label="Utama">
+        {% for endpoint, label, icon in nav %}
+        <a href="{{ url_for(endpoint) }}" class="nav__{{ icon }}"{% if request.endpoint == endpoint %} aria-current="page"{% endif %}>
+          <img src="{{ url_for('static', filename='deco/nav-' ~ icon ~ '.svg') }}" alt="" width="22" height="22">
+          <span>{{ label }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+    </div>
+  </header>
+
+  <main id="isi">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot__in">
+      <img class="foot__tower" src="{{ url_for('static', filename='deco/tower.svg') }}" alt="" width="70" height="105">
+      <div>
+        <p class="foot__title">Churn<b>Forest</b></p>
+        <p>Memprediksi pelanggan telekomunikasi yang berisiko berhenti berlangganan dengan Random Forest.</p>
+        <p>Data: IBM Sample Data Sets lewat <a href="https://www.kaggle.com/datasets/blastchar/telco-customer-churn">Kaggle</a>. Alat bantu belajar, bukan alat keputusan bisnis.</p>
+      </div>
+    </div>
+  </footer>
+  <script src="{{ url_for('static', filename='app.js') }}?v={{ version }}" defer></script>
+</body>
+</html>

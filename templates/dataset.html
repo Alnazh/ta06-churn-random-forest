@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% from "macros.html" import banner, head, figure with context %}
+{% block title %}Dataset{% endblock %}
+{% block content %}
+{{ banner("Telco Customer Churn", "Kenali dulu datanya", "Setiap baris adalah satu pelanggan. Targetnya adalah apakah pelanggan berhenti berlangganan.", "sim", "blue") }}
+<section class="section">
+  <div class="wrap">
+    {{ head("01", "Dataset Telco Customer Churn", "Setiap baris adalah satu pelanggan. Targetnya adalah apakah pelanggan berhenti berlangganan.", "red") }}
+    <dl class="facts">
+      <div><dt>Sumber</dt><dd><a href="https://www.kaggle.com/datasets/blastchar/telco-customer-churn">Kaggle, Telco Customer Churn</a> (IBM Sample Data Sets)</dd></div>
+      <div><dt>Ukuran</dt><dd>{{ m.dataset.n_rows|num }} baris, {{ m.dataset.n_features }} fitur, 1 target (Churn)</dd></div>
+      <div><dt>Pembagian</dt><dd>{{ m.dataset.n_train|num }} data latih dan {{ m.dataset.n_test|num }} data uji (80:20, berstrata)</dd></div>
+      <div><dt>Encoding</dt><dd>One-hot untuk {{ m.categorical|length }} kolom kategorikal. Kolom dua nilai menjadi satu kolom biner.</dd></div>
+      <div><dt>Imbalance</dt><dd>Ditangani dengan class_weight balanced pada semua model</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {{ head("02", "Ketidakseimbangan kelas", "Langkah analisis awal sebelum model dilatih.", "blue") }}
+    {{ figure("class_distribution.svg", "Jumlah pelanggan per kelas", text["class"], "pink") }}
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {{ head("03", "Pola churn pada data", "Dua pola yang nanti diharapkan muncul lagi pada feature importance.", "yellow") }}
+    {{ figure("churn_by_contract.svg", "Tingkat churn berdasarkan jenis kontrak", text["contract"], "lime") }}
+    {{ figure("churn_by_tenure.svg", "Tingkat churn berdasarkan lama berlangganan", text["tenure"], "blue") }}
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {{ head("04", "Preprocessing", "", "ink") }}
+    {% for line in text["missing"] %}<p class="body">{{ line }}</p>{% endfor %}
+    <div class="table-wrap table-wrap--left">
+      <table>
+        <caption class="sr">Daftar fitur yang dipakai model</caption>
+        <thead><tr><th scope="col">Fitur</th><th scope="col">Jenis</th><th scope="col">Nilai</th></tr></thead>
+        <tbody>
+          {% for column in m.feature_order %}
+          <tr>
+            <th scope="row">{{ labels[column] }}</th>
+            {% if column in m.categorical %}
+            <td>Kategorikal</td>
+            <td>{% for option in m.choices[column] %}{{ option|value_text }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+            {% else %}
+            <td>Numerik</td>
+            <td>Angka</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

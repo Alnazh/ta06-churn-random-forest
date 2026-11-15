@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% from "macros.html" import banner, head, figure with context %}
+{% block title %}Eksperimen{% endblock %}
+{% block content %}
+{{ banner("Dua skenario", "Cari setelan terbaik", "Jumlah pohon dan kedalaman pohon diuji satu per satu, lalu dipilih yang paling stabil.", "tower", "yellow") }}
+<section class="section">
+  <div class="wrap">
+    {{ head("01", "Skenario A: jumlah pohon", "Jumlah pohon (n_estimators) divariasikan dengan kedalaman tak terbatas. Pita kuning di grafik menandai nilai yang dipilih.", "red") }}
+    {{ figure("scenario_a.svg", "Akurasi uji dan validasi silang menurut jumlah pohon", text["a"], "lime") }}
+    <div class="table-wrap">
+      <table>
+        <caption class="sr">Hasil Skenario A</caption>
+        <thead>
+          <tr><th scope="col">Jumlah pohon</th><th scope="col">Akurasi uji</th><th scope="col">Akurasi validasi silang</th><th scope="col">F1 churn validasi silang</th><th scope="col">Recall churn uji</th><th scope="col">AUC uji</th></tr>
+        </thead>
+        <tbody>
+          {% for row in m.scenario_a.rows %}
+          <tr{% if row.value == m.scenario_a.chosen %} class="is-chosen"{% endif %}>
+            <th scope="row">{{ row.label }}</th>
+            <td>{{ row.test_acc|pct }}</td><td>{{ row.cv_acc|pct }}</td><td>{{ row.cv_f1|dec(3) }}</td><td>{{ row.test_recall|pct }}</td><td>{{ row.test_auc|dec(3) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {{ head("02", "Skenario B: kedalaman pohon", "Kedalaman (max_depth) divariasikan dengan " ~ m.scenario_b.n_estimators ~ " pohon dari Skenario A. Area merah muda adalah selisih akurasi latih dan uji.", "blue") }}
+    {{ figure("scenario_b.svg", "Akurasi latih dan uji menurut kedalaman pohon", text["b"], "blue") }}
+    <div class="table-wrap">
+      <table>
+        <caption class="sr">Hasil Skenario B</caption>
+        <thead>
+          <tr><th scope="col">Kedalaman</th><th scope="col">Akurasi latih</th><th scope="col">Akurasi uji</th><th scope="col">Selisih (poin)</th><th scope="col">F1 churn validasi silang</th><th scope="col">Recall churn uji</th><th scope="col">AUC uji</th></tr>
+        </thead>
+        <tbody>
+          {% for row in m.scenario_b.rows %}
+          <tr{% if row.value == m.scenario_b.chosen %} class="is-chosen"{% endif %}>
+            <th scope="row">{{ row.label }}</th>
+            <td>{{ row.train_acc|pct }}</td><td>{{ row.test_acc|pct }}</td><td>{{ (row.train_acc - row.test_acc)|pts }}</td><td>{{ row.cv_f1|dec(3) }}</td><td>{{ row.test_recall|pct }}</td><td>{{ row.test_auc|dec(3) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="panel panel--amber">
+      {{ head("03", "Kesimpulan eksperimen", "", "ink") }}
+      <ul class="plain">
+        {% for line in text["conclusion"] %}<li>{{ line }}</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+</section>
+{% endblock %}

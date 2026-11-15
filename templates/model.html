@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "macros.html" import banner, head, figure with context %}
+{% block title %}Model{% endblock %}
+{% block content %}
+{% set f = m.final %}
+{{ banner("Model akhir", "Seberapa jitu modelnya?", "Laporan, kesalahan, dan fitur yang paling menentukan keputusan hutan acak.", "tree", "lime") }}
+<section class="section">
+  <div class="wrap">
+    {{ head("01", "Laporan klasifikasi", "Model akhir: " ~ f.n_estimators ~ " pohon, kedalaman maksimum " ~ (f.max_depth|depth_text) ~ ". Dinilai pada " ~ (m.dataset.n_test|num) ~ " pelanggan data uji.", "red") }}
+    <div class="table-wrap">
+      <table>
+        <caption class="sr">Laporan klasifikasi pada data uji</caption>
+        <thead><tr><th scope="col">Kelas</th><th scope="col">Precision</th><th scope="col">Recall</th><th scope="col">F1-score</th><th scope="col">Jumlah</th></tr></thead>
+        <tbody>
+          {% for key, name in [("stay", "Bertahan"), ("churn", "Churn"), ("macro", "Rata-rata makro"), ("weighted", "Rata-rata tertimbang")] %}
+          {% set r = f.report[key] %}
+          <tr{% if key == "churn" %} class="is-chosen"{% endif %}>
+            <th scope="row">{{ name }}</th>
+            <td>{{ r.precision|dec }}</td><td>{{ r.recall|dec }}</td><td>{{ r["f1-score"]|dec }}</td><td>{{ r.support|num }}</td>
+          </tr>
+          {% endfor %}
+          <tr><th scope="row">Akurasi</th><td colspan="2"></td><td>{{ f.test_acc|dec }}</td><td>{{ m.dataset.n_test|num }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note-block">
+      <span class="tag">Cara membaca</span>
+      {% for line in text["report"] %}<p>{{ line }}</p>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {{ head("02", "Kesalahan model", "Confusion matrix dan kurva ROC menjawab pertanyaan yang berbeda.", "blue") }}
+    {{ figure("confusion_matrix.svg", "Confusion matrix pada data uji", text["confusion"], "pink") }}
+    {{ figure("roc_curve.svg", "Kurva ROC pada data uji", text["roc"], "blue") }}
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {{ head("03", "Isi satu pohon", "Hutan terdiri dari banyak pohon seperti ini. Gambar menunjukkan pertanyaan yang diajukan satu pohon dan skor di ujung jalurnya.", "red") }}
+    {{ figure("tree_example.svg", "Tiga tingkat teratas dari pohon pertama", text["tree"], "lime") }}
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    {{ head("04", "Fitur paling berpengaruh", "Sepuluh fitur teratas dari .feature_importances_. Tiga batang merah adalah tiga teratas.", "yellow") }}
+    {{ figure("feature_importance.svg", "Sepuluh fitur teratas menurut Random Forest", text["importance"], "yellow") }}
+  </div>
+</section>
+{% endblock %}
