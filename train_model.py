@@ -21,7 +21,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 import config
-import figures
 import trees
 
 
@@ -237,6 +236,8 @@ def run():
     config.MODEL_PATH.parent.mkdir(exist_ok=True)
     joblib.dump(model, config.MODEL_PATH, compress=3)
     config.METRICS_PATH.write_text(json.dumps(metrics, ensure_ascii=False, indent=1), encoding="utf-8")
+    import figures  # matplotlib hanya dibutuhkan saat melatih ulang
+
     figures.make_all(metrics)
     figures.tree_example(trees.example_tree(model, metrics["choices"]))
     return model, metrics

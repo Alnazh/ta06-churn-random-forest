@@ -1,15 +1,14 @@
 import json
+import warnings
 
 import joblib
 import pandas as pd
-import sklearn
 from flask import Flask, render_template, request
 
 import config
 import insights
 import train_model
 import trees
-import figures
 
 app = Flask(__name__)
 
@@ -23,11 +22,18 @@ NAV = [
 
 
 def load_artifacts():
+    """Pakai model yang dikemas agar angka aplikasi sama dengan laporan. Latih ulang hanya jika model gagal dimuat."""
     if config.MODEL_PATH.exists() and config.METRICS_PATH.exists():
-        metrics = json.loads(config.METRICS_PATH.read_text(encoding="utf-8"))
-        # Model hasil joblib hanya aman dimuat pada versi scikit-learn yang sama
-        if metrics.get("sklearn_version") == sklearn.__version__:
-            return joblib.load(config.MODEL_PATH), metrics
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                model = joblib.load(config.MODEL_PATH)
+                metrics = json.loads(config.METRICS_PATH.read_text(encoding="utf-8"))
+                frame = pd.DataFrame([metrics["defaults"]])[metrics["feature_order"]]
+                model.predict_proba(frame)
+            return model, metrics
+        except Exception:
+            pass
     return train_model.run()
 
 
@@ -36,6 +42,8 @@ TEXTS = insights.build_all(METRICS)
 TREE_EXAMPLE = trees.example_tree(MODEL, METRICS["choices"])
 TEXTS["model"]["tree"] = insights.tree_example_text(TREE_EXAMPLE)
 if not (config.IMG_DIR / "tree_example.svg").exists():
+    import figures  # matplotlib hanya dimuat jika gambar perlu dibuat
+
     figures.tree_example(TREE_EXAMPLE)
 
 app.jinja_env.filters.update(
