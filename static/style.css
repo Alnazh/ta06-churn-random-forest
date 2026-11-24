@@ -327,8 +327,8 @@ progress::-moz-progress-bar { background: var(--ink); }
 .path__ans--ya { background: var(--lime); }
 .path__ans--tidak { border-style: dashed; background: var(--white); }
 .path li.path__leaf { grid-template-columns: 1fr; gap: 0; border-width: 3px; box-shadow: var(--shadow-sm); font-size: 0.82rem; }
-.path__leaf--churn { background: var(--pink); }
-.path__leaf--stay { background: var(--blue); }
+.path li.path__leaf--churn { background: var(--pink); }
+.path li.path__leaf--stay { background: var(--blue); }
 .path__leaf span { font-size: 0.74rem; font-weight: 500; }
 
 /* Formulir */

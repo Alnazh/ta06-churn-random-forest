@@ -1,4 +1,6 @@
 import json
+import sys
+import traceback
 import warnings
 
 import joblib
@@ -33,7 +35,8 @@ def load_artifacts():
                 model.predict_proba(frame)
             return model, metrics
         except Exception:
-            pass
+            traceback.print_exc()
+            print("Model yang dikemas gagal dimuat, model akan dilatih ulang.", file=sys.stderr)
     return train_model.run()
 
 
