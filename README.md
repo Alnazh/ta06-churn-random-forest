@@ -106,7 +106,7 @@ Tiga fitur teratas: lama berlangganan (12,8%), total tagihan (12,2%), dan kontra
 ### 1. Clone repository
 
 ```bash
-git clone https://github.com/<username>/ta06-telco-churn-random-forest.git
+git clone https://github.com/Alnazh/ta06-telco-churn-random-forest.git
 cd ta06-telco-churn-random-forest
 ```
 
@@ -192,9 +192,6 @@ Script membersihkan data, membagi data 80:20, menjalankan Skenario A dan B, memi
 
 ### Eksperimen
 ![Eksperimen](docs/screenshots/desktop-eksperimen.png)
-
-### Hasil prediksi di ponsel
-![Hasil prediksi](docs/screenshots/mobile-hasil.png)
 
 ---
 
